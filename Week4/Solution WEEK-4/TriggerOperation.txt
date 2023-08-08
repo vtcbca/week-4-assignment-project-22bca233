@@ -1,0 +1,179 @@
+import sqlite3 as sq
+import datetime
+con = sq.connect("contactmanagementsystem.db")
+cur = con.cursor()
+->create a contact table
+
+cur.execute("""create table if not exists contact
+               ( cid int primary key,
+                 fname text,
+                 lname text,
+                 contact number,
+                 email text,
+                 city text
+                 check ( email like '%_@_%._%')
+                );""")
+<sqlite3.Cursor at 0x23e771b3540>
+->table for insert,update, delete log
+
+cur.execute("""create table if not exists details_log
+                (
+                    
+                    fname text,
+                    lname text,
+                    newcontact number,
+                    oldcontact number,
+                    datetime text,
+                    operation text
+                    
+                )""")
+<sqlite3.Cursor at 0x23e771b3540>
+ 
+<sqlite3.Cursor at 0x23e771b3540>
+->trigger for insert log
+
+cur.execute("""create trigger if not exists insertdata
+               after insert on contact
+               begin
+                   insert into details_log
+                   values(new.fname,new.lname,new.contact,'NULL',datetime('now'),'insert');
+               end;
+                   """)
+<sqlite3.Cursor at 0x23e771b3540>
+->trigger for delete log
+
+cur.execute("""create trigger if not exists deletedata
+               after delete on contact
+               begin
+                   insert into details_log
+                   values(old.fname,old.lname,'NULL',old.contact,datetime('now'),'delete');
+               end;
+                   """)
+<sqlite3.Cursor at 0x23e771b3540>
+->trigger for delete log
+
+cur.execute("""create trigger if not exists updatedata
+               after update on contact
+               begin
+                   insert into details_log
+                   values(new.fname,new.lname,new.contact,old.contact,datetime('now'),'update');
+               end;
+                   """)
+<sqlite3.Cursor at 0x23e771b3540>
+# def insertdata(n):
+#     data=[]
+#     for i in range(n):
+#         cid=int(input("Enter Contact ID:"))
+#         fname=input("Enter Contact First Name:")
+#         lname=input("Enter Contact Last Name:")
+#         contact=int(input("Enter Contact Number:"))
+#         email=input("Enter Contact Email:")
+#         city=input("Enter Contact City:")
+#         record=(cid,fname,lname,contact,email,city)
+#         data.append(record)
+#     cur.executemany("insert into contact values(?,?,?,?,?,?)",data)
+def updaterecord(cd):
+    newcon=int(input("Enter new Contact Number:"))
+    cur.execute(f"Update contact set contact={newcon} where cid={cd};")
+def deleterecord(cd):
+    cur.execute(f"delete from contact where cid={cd}")
+def searchrecord(cd):
+    cur.execute(f"select * from contact where cid={cd}")
+    row=cur.fetchall()
+    print(row)
+cur.execute("""insert into contact values
+                (1,'om','patel',9874521020,'om@gmail.com','bardoli'),
+                (2,'raj','shah',7489656622,'raj@gmail.com','surat'),
+                (3,'sai','rajput',8596302023,'sai@gmail.com','mandvi'),
+                (4,'prem','patil',7489620101,'prem@gmail.com','vyara'),
+                (5,'henil','rabari',7485120302,'henil@gmail.com','madhi');""")
+<sqlite3.Cursor at 0x23e771b3540>
+updaterecord(2)
+Enter new Contact Number:8585748510
+deleterecord(3)
+cur.execute("select * from contact")
+row=cur.fetchall()
+for i in row:
+    print(f"\nID:{i[0]}\nFname:{i[1]}\nLname:{i[2]}\nContact:{i[3]}\nEmail:{i[4]}\ncity:{i[5]}")
+ID:1
+Fname:om
+Lname:patel
+Contact:9874521020
+Email:om@gmail.com
+city:bardoli
+
+ID:2
+Fname:raj
+Lname:shah
+Contact:8585748510
+Email:raj@gmail.com
+city:surat
+
+ID:4
+Fname:prem
+Lname:patil
+Contact:7489620101
+Email:prem@gmail.com
+city:vyara
+
+ID:5
+Fname:henil
+Lname:rabari
+Contact:7485120302
+Email:henil@gmail.com
+city:madhi
+cur.execute("select * from details_log")
+row1=cur.fetchall()
+print(row1)
+for i in row1:
+    print(f"\nFname:{i[0]}\nLname:{i[1]}\nNew-contact:{i[2]}\nOld-Contact:{i[3]}\nDatetime:{i[4]}\nOperation:{i[5]}")
+[('om', 'patel', 9874521020, 'NULL', '2023-08-08 16:08:52', 'insert'), ('raj', 'shah', 7489656622, 'NULL', '2023-08-08 16:08:52', 'insert'), ('sai', 'rajput', 8596302023, 'NULL', '2023-08-08 16:08:52', 'insert'), ('prem', 'patil', 7489620101, 'NULL', '2023-08-08 16:08:52', 'insert'), ('henil', 'rabari', 7485120302, 'NULL', '2023-08-08 16:08:52', 'insert'), ('raj', 'shah', 8585748510, 7489656622, '2023-08-08 16:09:00', 'update'), ('sai', 'rajput', 'NULL', 8596302023, '2023-08-08 16:09:02', 'delete')]
+
+Fname:om
+Lname:patel
+New-contact:9874521020
+Old-Contact:NULL
+Datetime:2023-08-08 16:08:52
+Operation:insert
+
+Fname:raj
+Lname:shah
+New-contact:7489656622
+Old-Contact:NULL
+Datetime:2023-08-08 16:08:52
+Operation:insert
+
+Fname:sai
+Lname:rajput
+New-contact:8596302023
+Old-Contact:NULL
+Datetime:2023-08-08 16:08:52
+Operation:insert
+
+Fname:prem
+Lname:patil
+New-contact:7489620101
+Old-Contact:NULL
+Datetime:2023-08-08 16:08:52
+Operation:insert
+
+Fname:henil
+Lname:rabari
+New-contact:7485120302
+Old-Contact:NULL
+Datetime:2023-08-08 16:08:52
+Operation:insert
+
+Fname:raj
+Lname:shah
+New-contact:8585748510
+Old-Contact:7489656622
+Datetime:2023-08-08 16:09:00
+Operation:update
+
+Fname:sai
+Lname:rajput
+New-contact:NULL
+Old-Contact:8596302023
+Datetime:2023-08-08 16:09:02
+Operation:delete
